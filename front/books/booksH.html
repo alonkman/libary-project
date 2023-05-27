@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/style.css" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+  </head>
+
+  <body>
+    <div class="subnavbar">
+      <ul>
+        <li><a href="booksH.html">List</a></li>
+        <li><a href="add_book.html">Add book</a></li>
+      </ul>
+    </div>
+
+    <div class="title">Books:</div>
+    <div
+      id="booksDisplay"
+      style="overflow: hidden; /* Remove scrollbar */"
+    ></div>
+
+    <!--NOTE: SCRIPT ENTRY!!!-->
+    <script>
+      const MY_SERVER = "http://127.0.0.1:5000";
+      const showBooks = async () => {
+        books = await axios.get(MY_SERVER + "/show-books");
+
+        booksDisplay.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name of book</th>
+                            <th>Author</th>
+                            <th>Year of released</th>
+                            <th>Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${books.data
+                          .map(
+                            (book) => `
+                        <tr>
+                            
+                            <td>${book.name}</td>
+                            <td>${book.author}</td>
+                            <td>${book.year_published}</td>
+                            <td>${book.book_type}</td>
+                            <td><button onclick="deleteBook(${book.id})">Delete</button>
+                            <button onclick="openUpdate(${book.id})">Update</button></td>
+                        </tr> `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>`;
+      };
+
+      const deleteBook = async (bookid) => {
+        await axios.delete(`${MY_SERVER}/delete-book/${bookid}`);
+        showBooks();
+      };
+
+      const openUpdate = async (bookid) => {
+        book = await axios.get(`${MY_SERVER}/get-book/${bookid}`);
+
+        const overlay = document.createElement("div");
+        overlay.classList.add("overlay");
+
+        const popup = document.createElement("div");
+        popup.classList.add("popup");
+
+        const closeButton = document.createElement("button");
+        closeButton.classList.add("close-button");
+        closeButton.innerHTML = "&times;";
+        closeButton.addEventListener("click", closeUpdate);
+        const updateContainer = document.createElement("div");
+        updateContainer.classList.add("update-container");
+        updateContainer.innerHTML = `
+            <div class="title">Update a book:</div>
+            Name<br>
+            <input id="name" placeholder="${book.data["name"]}"><br>
+            Author<br>
+            <input id="author" placeholder="${book.data["author"]}"><br>
+            Year Published<br>
+            <input id="year_publish" placeholder="${book.data["year_published"]}"><br>
+            Type (1 - up to 10 days, 2 - up to 5 days, 3 - up to 2 days)<br>
+            <input id="type_book" placeholder="${book.data["book_type"]}""><br>
+            <button onclick="updateBook(${book.data["id"]})">Update</button>
+        `;
+
+        popup.appendChild(closeButton);
+        popup.appendChild(updateContainer);
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+      };
+
+      const updateBook = async (bookId) => {
+        const name = document.getElementById("name").value;
+        const author = document.getElementById("author").value;
+        const yearPublish = document.getElementById("year_publish").value;
+        const typeBook = document.getElementById("type_book").value;
+
+        const data = {
+          name: name,
+          author: author,
+          year_published: yearPublish,
+          book_type: typeBook,
+        };
+
+        await axios.put(`${MY_SERVER}/update-book/${bookId}`, data);
+        closeUpdate();
+      };
+
+      const closeUpdate = () => {
+        const overlay = document.querySelector(".overlay");
+        if (overlay) {
+          document.body.removeChild(overlay);
+        }
+      };
+
+      showBooks();
+    </script>
+  </body>
+</html>

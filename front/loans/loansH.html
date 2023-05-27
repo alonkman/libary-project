@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/style.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div class="subnavbar">
+        <ul>
+            <li><a href="loansH.html">List</a></li>
+            <li><a href="/">Return Loan</a></li>
+            <li><a href="/">Expired Loans</a></li>
+        </ul>
+    </div>
+
+     <div class="title">Loans:</div>
+     <div id="loansDisplay"></div>
+
+<script>
+  const MY_SERVER = "http://127.0.0.1:5000";
+  const showLoans = async () => {
+    const loansResponse = await axios.get(MY_SERVER + "/show-loans");
+    const loans = loansResponse.data;
+
+    loansDisplay.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Customer ID</th>
+            <th>Book ID</th>
+            <th>Loan Date</th>
+            <th>Return Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${loans
+            .map(
+              (loan) => `
+                <tr>
+                  <td>${loan.cust_id}</td>
+                  <td>${loan.book_id}</td>
+                  <td>${loan.loan_date}</td>
+                  <td>${loan.return_date}</td>
+                  <td>
+                    <button onclick="deleteLoan(${loan.id})">Delete</button>
+                    <button onclick="openUpdate(${loan.id})">Update</button>
+                    <button onclick="openLoan(${loan.id})">Add loan</button>
+                  </td>
+                </tr>
+              `
+            )
+            .join("")}
+        </tbody>
+      </table>`;
+  };
+</script>
+
+
+
+</body>
+
+</html>
